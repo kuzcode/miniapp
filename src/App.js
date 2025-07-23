@@ -6,14 +6,12 @@ import translations from './lang';
 const LOTTIE_URL = process.env.PUBLIC_URL + '/duck.json';
 
 function getCountryCode() {
-  // Пробуем получить страну из Telegram Mini App, если есть
   if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initDataUnsafe && window.Telegram.WebApp.initDataUnsafe.user && window.Telegram.WebApp.initDataUnsafe.user.language_code) {
     const lang = window.Telegram.WebApp.initDataUnsafe.user.language_code;
     if (lang.startsWith('ru')) return 'ru';
     if (lang.startsWith('en')) return 'en';
     return 'en';
   }
-  // Если не в Telegram, пробуем по браузеру
   const navLang = navigator.language || navigator.userLanguage;
   if (navLang.startsWith('ru')) return 'ru';
   if (navLang.startsWith('en')) return 'en';
@@ -38,6 +36,7 @@ function App() {
   });
   const [lang, setLang] = useState(getCountryCode());
   const [profile, setProfile] = useState(null);
+  const [debug, setDebug] = useState(null);
   const lottieRef = useRef(null);
 
   useEffect(() => {
@@ -61,10 +60,15 @@ function App() {
   }, [showProfile]);
 
   useEffect(() => {
-    // Если профиль ещё не получен, пробуем взять из Telegram Mini App
     if (showProfile && !profile) {
       const tgProfile = getProfileFromTelegram();
-      if (tgProfile) setProfile(tgProfile);
+      setProfile(tgProfile);
+      // Для отладки сохраняем весь initDataUnsafe
+      if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initDataUnsafe) {
+        setDebug(window.Telegram.WebApp.initDataUnsafe);
+      } else {
+        setDebug('window.Telegram или WebApp не определены');
+      }
     }
   }, [showProfile, profile]);
 
@@ -81,6 +85,15 @@ function App() {
         </div>
         <h2 className="profile-name">{name}</h2>
         <div className="profile-username">{username}</div>
+        {!profile && (
+          <div style={{marginTop: 24, color: '#c00', fontSize: 14, maxWidth: 340, wordBreak: 'break-all'}}>
+            <b>Профиль Telegram не найден!</b><br/>
+            Скорее всего, мини-апп открыт не через Telegram или Telegram не передал данные пользователя.<br/>
+            <br/>
+            <b>initDataUnsafe:</b>
+            <pre style={{fontSize: 12, background: '#f8f8f8', padding: 8, borderRadius: 8, overflowX: 'auto'}}>{typeof debug === 'string' ? debug : JSON.stringify(debug, null, 2)}</pre>
+          </div>
+        )}
       </div>
     );
   }
