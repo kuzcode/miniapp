@@ -1,0 +1,119 @@
+.App {
+  text-align: center;
+}
+
+.App-logo {
+  height: 40vmin;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .App-logo {
+    animation: App-logo-spin infinite 20s linear;
+  }
+}
+
+.App-header {
+  background-color: #282c34;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: calc(10px + 2vmin);
+  color: white;
+}
+
+.App-link {
+  color: #61dafb;
+}
+
+@keyframes App-logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.welcome-container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: #fff;
+  padding: 32px 16px;
+}
+
+.welcome-sticker {
+  width: 180px;
+  height: 180px;
+  border-radius: 32px;
+  margin-bottom: 24px;
+}
+
+.welcome-title {
+  font-size: 2.2rem;
+  font-weight: 700;
+  margin-bottom: 12px;
+  color: #222;
+  font-family: 'SF Pro Display', 'San Francisco', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+}
+
+.welcome-desc {
+  font-size: 1.1rem;
+  color: #555;
+  margin-bottom: 36px;
+  text-align: center;
+  max-width: 320px;
+  font-family: 'SF Pro Display', 'San Francisco', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+}
+
+.welcome-btn {
+  font-size: 1.2rem;
+  font-weight: 600;
+  padding: 18px 0;
+  width: 90vw;
+  max-width: 340px;
+  border: none;
+  border-radius: 18px;
+  background: #007aff;
+  color: #fff;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+  cursor: pointer;
+  transition: background 0.2s, box-shadow 0.2s;
+  font-weight: 400;
+  font-family: 'SF Pro Display', 'San Francisco', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+}
+.welcome-btn:active {
+  background: #f0f0f3;
+  box-shadow: 0 1px 6px rgba(0,0,0,0.04);
+}
+
+.profile-avatar {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  overflow: hidden;
+  margin: 0 auto 24px auto;
+  border: 2px solid #eee;
+}
+.profile-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.profile-name {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #222;
+  margin-bottom: 8px;
+  font-family: 'SF Pro Display', 'San Francisco', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+}
+.profile-username {
+  font-size: 1.1rem;
+  color: #888;
+  font-family: 'SF Pro Display', 'San Francisco', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+}
