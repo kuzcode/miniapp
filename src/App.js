@@ -83,21 +83,34 @@ function App() {
       value: country,
     }));
   } else if (step === 2) {
-    entries = selected.country?.cities.map(city => ({
+    entries = selected.country?.cities?.map(city => ({
       label: city.name,
       value: city,
     })) || [];
   } else if (step === 3) {
-    entries = selected.city?.districts.map(dist => ({
+    entries = selected.city?.districts?.map(dist => ({
       label: dist.name,
       value: dist,
     })) || [];
   } else if (step === 4) {
-    entries = selected.district?.metro.map(name => ({
+    entries = selected.district?.metro?.map(name => ({
       label: name,
       value: name,
     })) || [];
   }
+
+  // Auto-skip steps if no entries available
+  useEffect(() => {
+    if (step >= 2 && step <= 4) {
+      let list = [];
+      if (step === 2) list = selected.country?.cities || [];
+      if (step === 3) list = selected.city?.districts || [];
+      if (step === 4) list = selected.district?.metro || [];
+      if (list.length === 0) {
+        setStep(5);
+      }
+    }
+  }, [step, selected]);
 
   // Render wizard list pages
   if (step > 0 && step < 5) {
@@ -122,6 +135,7 @@ function App() {
             <button
               key={entry.label}
               className={`ios-btn mt ${selected[currentKey] === entry.value ? 'selected-list' : ''}`}
+              // corrected onClick below without diff residue
               onClick={() => {
                 const next = { ...selected, [currentKey]: entry.value };
                 // Clear deeper selections
@@ -165,6 +179,11 @@ function App() {
             <h2 className="profile-name compact">{name}</h2>
             <div className="profile-username compact">{username}</div>
           </div>
+        </div>
+        <div className="profile-username compact" onClick={() => { setStep(1) }}>📍 {selected.city.name}, {selected.metro ? selected.metro : selected.district.name}</div>
+        <div className='grid'>
+          <div className="profile-pl compact" onClick={() => { setStep(1) }}>Баланс</div>
+          <div className="profile-pl compact" onClick={() => { setStep(1) }}>Рефералы</div>
         </div>
         <div className="profile-actions">
           <button className="ios-btn">{t.btn1}</button>
