@@ -2,54 +2,53 @@ import React, { useEffect, useRef, useState } from 'react';
 import './App.css';
 import lottie from 'lottie-web';
 import translations from './lang';
-import countries from './countries';
+import mapData from './map';
 
 const LOTTIE_URL = process.env.PUBLIC_URL + '/duck.json';
 
+// Detect language code
 function getCountryCode() {
-  // Пробуем получить страну из Telegram Mini App, если есть
-  if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initDataUnsafe && window.Telegram.WebApp.initDataUnsafe.user && window.Telegram.WebApp.initDataUnsafe.user.language_code) {
+  if (
+    window.Telegram?.WebApp?.initDataUnsafe?.user?.language_code
+  ) {
     const lang = window.Telegram.WebApp.initDataUnsafe.user.language_code;
     if (lang.startsWith('ru')) return 'ru';
     if (lang.startsWith('en')) return 'en';
-    return 'en';
   }
-  // Если не в Telegram, пробуем по браузеру
-  const navLang = navigator.language || navigator.userLanguage;
-  if (navLang.startsWith('ru')) return 'ru';
-  if (navLang.startsWith('en')) return 'en';
+  const nav = navigator.language || navigator.userLanguage;
+  if (nav.startsWith('ru')) return 'ru';
+  if (nav.startsWith('en')) return 'en';
   return 'en';
 }
 
+// Fetch Telegram profile if available
 function getProfileFromTelegram() {
-  if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initDataUnsafe && window.Telegram.WebApp.initDataUnsafe.user) {
-    const user = window.Telegram.WebApp.initDataUnsafe.user;
+  const user = window.Telegram?.WebApp?.initDataUnsafe?.user;
+  if (user) {
     return {
       name: user.first_name + (user.last_name ? ' ' + user.last_name : ''),
       username: user.username ? '@' + user.username : '',
-      photo: user.photo_url || undefined,
+      photo: user.photo_url,
     };
   }
   return null;
 }
 
 function App() {
-  const [screen, setScreen] = useState('welcome'); // 'welcome' | 'country' | 'profile'
-  const [lang, setLang] = useState(getCountryCode());
+  const [step, setStep] = useState(0); // 0=welcome,1=country,2=city,3=district,4=metro,5=profile
+  const [selected, setSelected] = useState({
+    country: null,
+    city: null,
+    district: null,
+    metro: null,
+  });
+  const [lang] = useState(getCountryCode());
   const [profile, setProfile] = useState(null);
-  const [selectedCountry, setSelectedCountry] = useState(null); // страна не определяется автоматически
-  const [showCountryModal, setShowCountryModal] = useState(false);
-  const [search, setSearch] = useState('');
   const lottieRef = useRef(null);
 
-  const filteredCountries = countries.filter(c =>
-    c.name.toLowerCase().includes(search.toLowerCase())
-  );
-
-  // useEffect для определения страны по IP удалён
-
+  // Lottie animation on welcome
   useEffect(() => {
-    if (screen === 'welcome' && lottieRef.current) {
+    if (step === 0 && lottieRef.current) {
       let anim;
       fetch(LOTTIE_URL)
         .then(res => res.json())
@@ -62,36 +61,97 @@ function App() {
             animationData: data,
           });
         });
-      return () => {
-        if (anim) anim.destroy();
-      };
+      return () => anim?.destroy();
     }
-  }, [screen]);
+  }, [step]);
 
+  // Load Telegram profile on final step
   useEffect(() => {
-    // Если профиль ещё не получен, пробуем взять из Telegram Mini App
-    if (screen === 'profile' && !profile) {
-      const tgProfile = getProfileFromTelegram();
-      if (tgProfile) setProfile(tgProfile);
+    if (step === 5 && !profile) {
+      const tg = getProfileFromTelegram();
+      if (tg) setProfile(tg);
     }
-  }, [screen, profile]);
-
-  useEffect(() => {
-    if (screen === 'country' && !selectedCountry) {
-      fetch('https://ipapi.co/json/')
-        .then(res => res.json())
-        .then(data => {
-          const found = countries.find(c => c.code === data.country_code);
-          if (found) setSelectedCountry(found);
-        })
-        .catch(() => {});
-    }
-  }, [screen, selectedCountry]);
+  }, [step, profile]);
 
   const t = translations[lang] || translations.en;
 
-  // --- ЭКРАНЫ ---
-  if (screen === 'profile') {
+  // Helper to build list entries per step
+  let entries = [];
+  if (step === 1) {
+    entries = mapData.map(country => ({
+      label: country.country,
+      value: country,
+    }));
+  } else if (step === 2) {
+    entries = selected.country?.cities.map(city => ({
+      label: city.name,
+      value: city,
+    })) || [];
+  } else if (step === 3) {
+    entries = selected.city?.districts.map(dist => ({
+      label: dist.name,
+      value: dist,
+    })) || [];
+  } else if (step === 4) {
+    entries = selected.district?.metro.map(name => ({
+      label: name,
+      value: name,
+    })) || [];
+  }
+
+  // Render wizard list pages
+  if (step > 0 && step < 5) {
+    const currentKey = ['country', 'city', 'district', 'metro'][step - 1];
+    const headerMap = {
+      1: 'Выберите страну',
+      2: 'Выберите город',
+      3: 'Выберите район',
+      4: 'Выберите станцию метро',
+    };
+    const headerText = headerMap[step];
+    return (
+      <>
+        <div className="wizard-header">
+          <button className="back-arrow" onClick={() => setStep(step - 1)}>
+            &larr;
+          </button>
+          <h2 className="wizard-title">{headerText}</h2>
+        </div>
+        <div className="select-page">
+          {entries.map(entry => (
+            <button
+              key={entry.label}
+              className={`ios-btn mt ${selected[currentKey] === entry.value ? 'selected-list' : ''}`}
+              onClick={() => {
+                const next = { ...selected, [currentKey]: entry.value };
+                // Clear deeper selections
+                if (currentKey === 'country') {
+                  next.city = next.district = next.metro = null;
+                }
+                if (currentKey === 'city') {
+                  next.district = next.metro = null;
+                }
+                if (currentKey === 'district') {
+                  next.metro = null;
+                }
+                setSelected(next);
+              }}
+            >
+              {entry.label}
+            </button>
+          ))}
+          {selected[currentKey] && (
+            <button className="welcome-btn fix" onClick={() => setStep(step + 1)}>
+              Далее
+            </button>
+          )}
+        </div>
+      </>
+    );
+  }
+
+  // Render profile page after wizard complete
+  if (step === 5) {
     const name = profile?.name || t.profile_name;
     const username = profile?.username || t.profile_username;
     const photo = profile?.photo || 'https://i.pravatar.cc/180?img=3';
@@ -107,82 +167,32 @@ function App() {
           </div>
         </div>
         <div className="profile-actions">
-          <button className="ios-btn">{t.action1 || 'Кнопка 1'}</button>
-          <button className="ios-btn">{t.action2 || 'Кнопка 2'}</button>
-          <button className="ios-btn">{t.action3 || 'Кнопка 3'}</button>
+          <button className="ios-btn">{t.btn1}</button>
+          <button className="ios-btn">{t.btn2}</button>
+          <button className="ios-btn">{t.btn3}</button>
+          <button className="ios-btn">{t.btn4}</button>
+          <button className="ios-btn">{t.btn5}</button>
+          <button className="ios-btn">{t.btn6}</button>
         </div>
       </div>
     );
   }
 
-  if (screen === 'country') {
-    const handleCountryClick = () => {
-      setShowCountryModal(true);
-    };
-    const handleCountrySelect = (country) => {
-      setSelectedCountry(country);
-      setShowCountryModal(false);
-      setSearch('');
-    };
-    const handleModalClose = () => {
-      setShowCountryModal(false);
-      setSearch('');
-    };
-    return (
-      <div className="country-select-page fade-in">
-        <h1 className="welcome-title">Выберите страну</h1>
-        <div className="country-select-placeholder" onClick={handleCountryClick} style={{cursor:'pointer'}}>
-          {selectedCountry ? (
-            <span style={{display:'flex',alignItems:'center',gap:8}}>
-              <span style={{fontSize:24}}>{selectedCountry.flag}</span>
-              <span>{selectedCountry.name}</span>
-            </span>
-          ) : 'Страна'}
-        </div>
-        <button className="welcome-btn" style={{background: '#1976d2', color: '#fff'}}>Дальше</button>
-        {showCountryModal && (
-          <div className="modal-overlay" onClick={handleModalClose}>
-            <div className="modal-window" onClick={e => e.stopPropagation()}>
-              <input
-                className="modal-search"
-                type="text"
-                placeholder="Поиск страны"
-                value={search}
-                onChange={e => setSearch(e.target.value)}
-                autoFocus
-              />
-              <div className="modal-list">
-                {filteredCountries.map(c => (
-                  <div
-                    key={c.code}
-                    className="modal-country-item"
-                    onClick={() => handleCountrySelect(c)}
-                  >
-                    <span style={{fontSize:22, marginRight:10}}>{c.flag}</span>
-                    {c.name}
-                  </div>
-                ))}
-                {filteredCountries.length === 0 && (
-                  <div className="modal-country-item" style={{color:'#bbb'}}>Ничего не найдено</div>
-                )}
-              </div>
-              <button className="modal-close-btn" onClick={handleModalClose}>Закрыть</button>
-            </div>
-          </div>
-        )}
-      </div>
-    );
-  }
-
-  // --- ПРИВЕТСТВЕННЫЙ ЭКРАН ---
+  // Welcome page
   return (
-    <div className="welcome-container fade-in">
-      <div ref={lottieRef} className="welcome-sticker" style={{overflow: 'hidden'}}></div>
+    <div className="welcome-container">
+      <div ref={lottieRef} className="welcome-sticker" style={{ overflow: 'hidden' }} />
       <h1 className="welcome-title">{t.welcome}</h1>
       <p className="welcome-desc">{t.description}</p>
-      <button className="welcome-btn" onClick={() => {
-        setScreen('country');
-      }}>{t.start}</button>
+      <button
+        className="welcome-btn"
+        onClick={() => {
+          localStorage.setItem('welcome_shown', '1');
+          setStep(1);
+        }}
+      >
+        {t.start}
+      </button>
     </div>
   );
 }

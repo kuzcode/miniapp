@@ -5,6 +5,12 @@ const translations = {
     start: 'Начать',
     profile_name: 'Иван Иванов',
     profile_username: '@username',
+    btn1: '💊 Вещества',
+    btn2: '📝 Документы',
+    btn3: '🔫 Пушки',
+    btn4: '💳 Карты',
+    btn5: '💼 Работа',
+    btn6: '💸 Обнал',
   },
   en: {
     welcome: 'Welcome!',
