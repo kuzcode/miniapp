@@ -18,6 +18,12 @@ const translations = {
     start: 'Start',
     profile_name: 'Ivan Ivanov',
     profile_username: '@username',
+    btn1: '💊 Staff',
+    btn2: '📝 Documents',
+    btn3: '🔫 Guns',
+    btn4: '💳 Cards',
+    btn5: '💼 Work',
+    btn6: '💸 Cash',
   },
 };
 

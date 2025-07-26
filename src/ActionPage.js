@@ -79,10 +79,13 @@ function ActionPage() {
         ) : (
         <>
             {filteredDocuments.map(doc => (
-              <div key={doc.$id} className='product'>
-                <img
-                src={doc.img}
-                />
+              <div
+                key={doc.$id}
+                className='product'
+                onClick={() => navigate(`/product/${doc.$id}`, { state: { doc } })}
+                style={{ cursor: 'pointer' }}
+              >
+                <img src={doc.img} />
                 <p>{doc.name}</p>
               </div>
             ))}

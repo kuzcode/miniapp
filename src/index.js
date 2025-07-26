@@ -4,6 +4,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import './index.css';
 import App from './App';
 import ActionPage from './ActionPage';
+import ProductPage from './ProductPage';
 import * as serviceWorkerRegistration from './serviceWorkerRegistration';
 import reportWebVitals from './reportWebVitals';
 
@@ -13,6 +14,7 @@ root.render(
     <Router>
       <Routes>
         <Route path="/" element={<App />} />
+<Route path="/product/:id" element={<ProductPage />} />
         <Route path="/action/:index" element={<ActionPage />} />
       </Routes>
     </Router>
