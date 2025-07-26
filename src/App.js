@@ -46,6 +46,25 @@ function App() {
   const [profile, setProfile] = useState(null);
   const lottieRef = useRef(null);
 
+  // Load step and selected from localStorage
+  useEffect(() => {
+    const savedSelected = localStorage.getItem('selectedLocation');
+    const welcomeShown = localStorage.getItem('welcome_shown');
+    if (savedSelected) {
+      setSelected(JSON.parse(savedSelected));
+      setStep(5);
+    } else if (welcomeShown) {
+      setStep(1);
+    }
+  }, []);
+
+  // Save selected to localStorage when profile step reached
+  useEffect(() => {
+    if (step === 5) {
+      localStorage.setItem('selectedLocation', JSON.stringify(selected));
+    }
+  }, [step, selected]);
+
   // Lottie animation on welcome
   useEffect(() => {
     if (step === 0 && lottieRef.current) {
@@ -186,11 +205,15 @@ function App() {
           <div className="profile-pl compact" onClick={() => { setStep(1) }}>Рефералы</div>
         </div>
         <div className="profile-actions">
-          <button className="ios-btn">{t.btn1}</button>
-          <button className="ios-btn">{t.btn2}</button>
-          <button className="ios-btn">{t.btn3}</button>
-          <button className="ios-btn">{t.btn4}</button>
-          <button className="ios-btn">{t.btn5}</button>
+          {[t.btn1, t.btn2, t.btn3, t.btn4, t.btn5].map((label, i) => (
+            <button
+              key={i}
+              className="ios-btn"
+              onClick={() => window.location.href = `/action/${i}?label=${encodeURIComponent(label)}`}
+            >
+              {label}
+            </button>
+          ))}
           <button className="ios-btn">{t.btn6}</button>
         </div>
       </div>
