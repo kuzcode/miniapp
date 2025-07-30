@@ -77,22 +77,28 @@ function ActionPage() {
         {loading ? (
           <div className="loader"></div>
         ) : (
-        <>
-            {filteredDocuments.map(doc => (
-              <div
-                key={doc.$id}
-                className='product'
-                onClick={() => navigate(`/product/${doc.$id}`, { state: { doc } })}
-                style={{ cursor: 'pointer' }}
-              >
-                <img src={doc.img} />
-                <p>{doc.name}</p>
-              </div>
-            ))}
-            </>
+          <>
+            {filteredDocuments
+              .slice() // создаем копию массива, чтобы не мутировать оригинал
+              .sort((a, b) => a.category - b.category)
+              .map(doc => (
+                <div
+                  key={doc.$id}
+                  className='product'
+                  onClick={() => navigate(`/product/${doc.$id}`, { state: { doc } })}
+                  style={{ cursor: 'pointer' }}
+                >
+                  <img src={doc.img} />
+                  <p>{doc.name}</p>
+                  <p className='little'>{doc.price}₽ / {doc.name !== 'Экстази' ? 'грамм' : 'штука'}</p>
+                </div>
+              ))}
+
+            <div className='pt'></div>
+          </>
         )}
       </div>
-    </div>
+    </div >
   );
 }
 

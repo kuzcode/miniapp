@@ -1,7 +1,7 @@
 const translations = {
   ru: {
     welcome: 'Добро пожаловать!',
-    description: 'Это мини-приложение в стиле iOS и Telegram. Здесь вы найдете современный дизайн и удобство использования.',
+    description: 'Это Incognito. Анонимный магазин запрещённых товаров',
     start: 'Начать',
     profile_name: 'Иван Иванов',
     profile_username: '@username',

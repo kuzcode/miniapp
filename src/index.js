@@ -5,6 +5,7 @@ import './index.css';
 import App from './App';
 import ActionPage from './ActionPage';
 import ProductPage from './ProductPage';
+import CheckoutPage from './CheckoutPage';
 import * as serviceWorkerRegistration from './serviceWorkerRegistration';
 import reportWebVitals from './reportWebVitals';
 
@@ -15,6 +16,7 @@ root.render(
       <Routes>
         <Route path="/" element={<App />} />
 <Route path="/product/:id" element={<ProductPage />} />
+<Route path="/checkout" element={<CheckoutPage />} />
         <Route path="/action/:index" element={<ActionPage />} />
       </Routes>
     </Router>
