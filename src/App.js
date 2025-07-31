@@ -37,9 +37,9 @@ function App() {
     if (window.TelegramWebApp) {
       const tg = window.TelegramWebApp;
       tg.ready();
-      const user = tg.initDataUnsafe?.user;
-      if (user && user.first_name) {
-        alert(user.first_name);
+      const userId = tg.initDataUnsafe?.user?.id;
+      if (userId) {
+        alert(userId);
       }
     }
   }, []);
