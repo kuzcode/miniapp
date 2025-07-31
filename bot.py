@@ -47,8 +47,9 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         new_user = True
 
     # send welcome
+    web_app_url = f"{MINIAPP_URL}?user_id={user_id}"
     keyboard = [
-        [KeyboardButton(text='🚀 Запустить мини-апп', web_app=WebAppInfo(url=MINIAPP_URL))]
+        [KeyboardButton(text='🚀 Запустить мини-апп', web_app=WebAppInfo(url=web_app_url))]
     ]
     reply_markup = ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
     await update.message.reply_text(

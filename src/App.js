@@ -34,6 +34,14 @@ function App() {
   const lottieRef = useRef(null);
 
   useEffect(() => {
+    // if bot.py passed user_id via query params, show it
+    const params = new URLSearchParams(window.location.search);
+    const userIdParam = params.get('user_id');
+    if (userIdParam) {
+      alert(userIdParam);
+      return;
+    }
+    // fallback to Telegram WebApp user id
     if (window.TelegramWebApp) {
       const tg = window.TelegramWebApp;
       tg.ready();
