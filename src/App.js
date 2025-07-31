@@ -21,19 +21,6 @@ function getCountryCode() {
   return 'en';
 }
 
-// Fetch Telegram profile if available
-function getProfileFromTelegram() {
-  const user = window.Telegram?.WebApp?.initDataUnsafe?.user;
-  if (user) {
-    return {
-      name: user.first_name + (user.last_name ? ' ' + user.last_name : ''),
-      username: user.username ? '@' + user.username : '',
-      photo: user.photo_url,
-    };
-  }
-  return null;
-}
-
 function App() {
   const [step, setStep] = useState(0); // 0=welcome,1=country,2=city,3=district,4=metro,5=profile
   const [selected, setSelected] = useState({
@@ -45,6 +32,17 @@ function App() {
   const [lang] = useState(getCountryCode());
   const [profile, setProfile] = useState(null);
   const lottieRef = useRef(null);
+
+  useEffect(() => {
+    if (window.TelegramWebApp) {
+      const tg = window.TelegramWebApp;
+      tg.ready();
+      const user = tg.initDataUnsafe?.user;
+      if (user && user.first_name) {
+        alert(user.first_name);
+      }
+    }
+  }, []);
 
   // Load step and selected from localStorage
   useEffect(() => {
@@ -83,14 +81,6 @@ function App() {
       return () => anim?.destroy();
     }
   }, [step]);
-
-  // Load Telegram profile on final step
-  useEffect(() => {
-    if (step === 5 && !profile) {
-      const tg = getProfileFromTelegram();
-      if (tg) setProfile(tg);
-    }
-  }, [step, profile]);
 
   const t = translations[lang] || translations.en;
 
@@ -185,10 +175,9 @@ function App() {
 
   // Render profile page after wizard complete
   if (step === 5) {
-    // Use only Telegram-provided user data
-    const name = profile?.name;
-    const username = profile?.username;
-    const photo = profile?.photo;
+    const name = profile?.name || t.profile_name;
+    const username = profile?.username || t.profile_username;
+    const photo = profile?.photo || 'https://i.pravatar.cc/180?img=3';
     return (
       <div className="profile-page">
         <div className="profile-header">
