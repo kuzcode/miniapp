@@ -4,7 +4,7 @@ import { databases } from './appwrite';
 
 const DATABASE_ID = '6851839e00173225abcd';
 // TODO: Fill in your 5 collection IDs here
-const COLLECTION_IDS = ['68827117003a4f156ee6', '688272a3001605845318', '68809f960016a51edb61', '', ''];
+const COLLECTION_IDS = ['68827117003a4f156ee6', '688272a3001605845318', '68809f960016a51edb61', '', '688272f3003d4dc8d370'];
 
 function ActionPage() {
   const { index } = useParams();
@@ -81,16 +81,21 @@ function ActionPage() {
             {filteredDocuments
               .slice() // создаем копию массива, чтобы не мутировать оригинал
               .sort((a, b) => a.category - b.category)
-              .map(doc => (
+              .map((doc, idx) => (
                 <div
                   key={doc.$id}
                   className='product'
-                  onClick={() => navigate(`/product/${doc.$id}`, { state: { doc } })}
+                  onClick={() => navigate(`/product/${doc.$id}`, { state: { doc, position: idx } })}
                   style={{ cursor: 'pointer' }}
                 >
                   <img src={doc.img} />
                   <p>{doc.name}</p>
-                  <p className='little'>{doc.price}₽ / {doc.name !== 'Экстази' ? 'грамм' : 'штука'}</p>
+                  {doc.price && (
+                  <p className='little'>{doc.price}₽ / {['Экстази', 'LSD Sunshine'].includes(doc.name) ? ' штука' : 'грамм'}</p>
+                  )}
+                  {doc.salary && (
+                  <p className='little'>От {doc.salary}₽ / месяц</p>
+                  )}
                 </div>
               ))}
 

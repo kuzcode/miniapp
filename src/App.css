@@ -470,3 +470,47 @@ body {
   margin-bottom: 10vh;
   width: 100%;
 }
+
+.selectgram {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: #000000c2;
+  z-index: 10;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+
+  display: flex;
+  justify-content: center;
+}
+
+.selectgram .container {
+  position: fixed;
+  top: 25vh;
+  background: #fff;
+  border-radius: 32px;
+  padding: 0 20px 16px 20px;
+}
+
+.tc {
+  text-align: center;
+}
+
+.col {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.col button {
+  margin: 5px 0;
+  width: calc(100% - 40px);
+  min-width: calc(18vw + 120px);
+}
+
+.col button p {
+  margin: 0;
+}

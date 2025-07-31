@@ -185,9 +185,10 @@ function App() {
 
   // Render profile page after wizard complete
   if (step === 5) {
-    const name = profile?.name || t.profile_name;
-    const username = profile?.username || t.profile_username;
-    const photo = profile?.photo || 'https://i.pravatar.cc/180?img=3';
+    // Use only Telegram-provided user data
+    const name = profile?.name;
+    const username = profile?.username;
+    const photo = profile?.photo;
     return (
       <div className="profile-page">
         <div className="profile-header">
@@ -199,7 +200,7 @@ function App() {
             <div className="profile-username compact">{username}</div>
           </div>
         </div>
-        <div className="profile-username compact" onClick={() => { setStep(1) }}>📍 {selected.city.name}, {selected.metro ? selected.metro : selected.district.name}</div>
+        <div className="profile-username compact" onClick={() => { setStep(1) }}>📍 {selected.city?.name}, {selected.metro ? selected.metro : selected?.district?.name}</div>
         <div className='grid'>
           <div className="profile-pl compact" onClick={() => { setStep(1) }}>Баланс</div>
           <div className="profile-pl compact" onClick={() => { setStep(1) }}>Рефералы</div>
