@@ -48,7 +48,8 @@ function App() {
     const firstNameParam = params.get('first_name');
     const lastNameParam = params.get('last_name');
     const usernameParam = params.get('username');
-    const avatarParam = params.get('avatar');
+    const avatarParamRaw = params.get('avatar');
+    const avatarParam = avatarParamRaw ? decodeURIComponent(avatarParamRaw) : '';
     if (userIdParam) {
       const profileObj = {
         id: userIdParam,
@@ -56,7 +57,6 @@ function App() {
         username: usernameParam,
         avatar: avatarParam,
       };
-      alert(profileObj.id);
       setProfile(profileObj);
       localStorage.setItem('profile', JSON.stringify(profileObj));
       return;
@@ -73,7 +73,6 @@ function App() {
           username: user.username,
           avatar: '',
         };
-        alert(profileObj.id);
         setProfile(profileObj);
         localStorage.setItem('profile', JSON.stringify(profileObj));
       }
@@ -211,6 +210,9 @@ function App() {
 
   // Render profile page after wizard complete
   if (step === 5) {
+    const hasUrlData = new URLSearchParams(window.location.search).get('user_id');
+    if (!hasUrlData) return null;
+    if (!profile) return null;
     const name = profile?.name || t.profile_name;
     const username = profile ? `@${profile.username}` : t.profile_username;
     const photo = profile?.avatar || 'https://i.pravatar.cc/180?img=3';
