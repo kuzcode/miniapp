@@ -31,23 +31,51 @@ function App() {
   });
   const [lang] = useState(getCountryCode());
   const [profile, setProfile] = useState(null);
+
+  // load profile from localStorage
+  useEffect(() => {
+    const stored = localStorage.getItem('profile');
+    if (stored) {
+      setProfile(JSON.parse(stored));
+    }
+  }, []);
   const lottieRef = useRef(null);
 
   useEffect(() => {
-    // if bot.py passed user_id via query params, show it
+    // if bot.py passed user info via query params, use it
     const params = new URLSearchParams(window.location.search);
     const userIdParam = params.get('user_id');
+    const firstNameParam = params.get('first_name');
+    const lastNameParam = params.get('last_name');
+    const usernameParam = params.get('username');
+    const avatarParam = params.get('avatar');
     if (userIdParam) {
-      alert(userIdParam);
+      const profileObj = {
+        id: userIdParam,
+        name: `${firstNameParam || ''} ${lastNameParam || ''}`.trim(),
+        username: usernameParam,
+        avatar: avatarParam,
+      };
+      alert(profileObj.id);
+      setProfile(profileObj);
+      localStorage.setItem('profile', JSON.stringify(profileObj));
       return;
     }
-    // fallback to Telegram WebApp user id
+    // fallback to Telegram WebApp user data
     if (window.TelegramWebApp) {
       const tg = window.TelegramWebApp;
       tg.ready();
-      const userId = tg.initDataUnsafe?.user?.id;
-      if (userId) {
-        alert(userId);
+      const user = tg.initDataUnsafe?.user;
+      if (user) {
+        const profileObj = {
+          id: user.id,
+          name: `${user.first_name || ''} ${user.last_name || ''}`.trim(),
+          username: user.username,
+          avatar: '',
+        };
+        alert(profileObj.id);
+        setProfile(profileObj);
+        localStorage.setItem('profile', JSON.stringify(profileObj));
       }
     }
   }, []);
@@ -184,8 +212,8 @@ function App() {
   // Render profile page after wizard complete
   if (step === 5) {
     const name = profile?.name || t.profile_name;
-    const username = profile?.username || t.profile_username;
-    const photo = profile?.photo || 'https://i.pravatar.cc/180?img=3';
+    const username = profile ? `@${profile.username}` : t.profile_username;
+    const photo = profile?.avatar || 'https://i.pravatar.cc/180?img=3';
     return (
       <div className="profile-page">
         <div className="profile-header">

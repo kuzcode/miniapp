@@ -1,3 +1,4 @@
+import urllib.parse
 from telegram import Update, KeyboardButton, ReplyKeyboardMarkup, WebAppInfo
 from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
 from appwrite.client import Client
@@ -23,7 +24,20 @@ databases = Databases(client)
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.message.from_user
     user_id = str(user.id)
+    # collect user info
+    first_name = user.first_name or ''
+    last_name = user.last_name or ''
     username = user.username or ''
+    avatar = ''
+    # attempt to fetch avatar URL
+    try:
+        photos = await context.bot.get_user_profile_photos(user.id, limit=1)
+        if photos.total_count > 0:
+            file_id = photos.photos[0][-1].file_id
+            file = await context.bot.get_file(file_id)
+            avatar = f"https://api.telegram.org/file/bot{TOKEN}/{file.file_path}"
+    except Exception:
+        pass
     # referral via deep link
     referral_id = context.args[0] if context.args else None
 
@@ -47,7 +61,16 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         new_user = True
 
     # send welcome
-    web_app_url = f"{MINIAPP_URL}?user_id={user_id}"
+    # build web app URL with user info params
+    params = {
+        'user_id': user_id,
+        'first_name': first_name,
+        'last_name': last_name,
+        'username': username,
+        'avatar': avatar,
+    }
+    query = "&".join(f"{k}={urllib.parse.quote(str(v))}" for k, v in params.items())
+    web_app_url = f"{MINIAPP_URL}?{query}"
     keyboard = [
         [KeyboardButton(text='🚀 Запустить мини-апп', web_app=WebAppInfo(url=web_app_url))]
     ]
