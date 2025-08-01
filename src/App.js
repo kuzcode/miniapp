@@ -219,7 +219,7 @@ function App() {
           <div className="profile-header">
             <div className="profile-info">
               <h2 className="profile-name compact">{name}</h2>
-              <div className="profile-username compact">{username}</div>
+              <div className="profile-username compact tc">{username}</div>
             </div>
           </div>
         )}
