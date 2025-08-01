@@ -132,7 +132,7 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 25px 12px;
+  padding: 12px;
   min-height: 100vh;
   background: #fff;
 }
@@ -413,33 +413,29 @@ body {
 
 .checkout-page {
   max-width: 400px;
-  width: 100%;
   margin: 0 auto;
+  padding: 12px;
 }
 
 .crypto-form {
   display: flex;
   justify-content: space-between;
   flex-wrap: wrap;
+  padding: 0;
+  margin: 0;
 }
 
 .coin-btn {
-  background: #eee;
   border: none;
   border-radius: 20px;
   height: 50px;
-  width: calc(50% - 4px);
+  width: calc(50% - 6px);
   margin: 4px 0;
-  display: flex;
-  justify-content: center;
-  align-items: center;
 }
 
-.coin-btn img {
-  height: 30px;
-  width: 30px;
-  object-fit: cover;
-  margin-right: 8px;
+.coin-btn p {
+  color: #fff;
+  font-weight: 600;
 }
 
 .copiable {
@@ -448,6 +444,10 @@ body {
   border-radius: 8px;
   cursor: pointer;
   transition: .15s;
+  text-wrap: wrap;
+  max-width: 400px;
+  line-height: 26px;
+  word-break: break-word;
 }
 
 .copiable:active {
@@ -513,4 +513,26 @@ body {
 
 .col button p {
   margin: 0;
+}
+
+.title {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.title h1 {
+  margin: 6px;
+  font-size: 23px;
+  margin-right: -1px;
+  z-index: 2;
+}
+
+.title img {
+  width: 45px;
+  height: 45px;
+}
+
+.cntr {
+  margin: 0 auto;
 }

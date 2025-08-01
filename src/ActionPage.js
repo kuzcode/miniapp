@@ -4,7 +4,7 @@ import { databases } from './appwrite';
 
 const DATABASE_ID = '6851839e00173225abcd';
 // TODO: Fill in your 5 collection IDs here
-const COLLECTION_IDS = ['68827117003a4f156ee6', '688272a3001605845318', '68809f960016a51edb61', '', '688272f3003d4dc8d370'];
+const COLLECTION_IDS = ['68827117003a4f156ee6', '688272f3003d4dc8d370'];
 
 function ActionPage() {
   const { index } = useParams();

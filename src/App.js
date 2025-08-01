@@ -3,6 +3,7 @@ import './App.css';
 import lottie from 'lottie-web';
 import translations from './lang';
 import mapData from './map';
+import hat from './hat.jpeg'
 
 const LOTTIE_URL = process.env.PUBLIC_URL + '/duck.json';
 
@@ -48,14 +49,11 @@ function App() {
     const firstNameParam = params.get('first_name');
     const lastNameParam = params.get('last_name');
     const usernameParam = params.get('username');
-    const avatarParamRaw = params.get('avatar');
-    const avatarParam = avatarParamRaw ? decodeURIComponent(avatarParamRaw) : '';
     if (userIdParam) {
       const profileObj = {
         id: userIdParam,
         name: `${firstNameParam || ''} ${lastNameParam || ''}`.trim(),
         username: usernameParam,
-        avatar: avatarParam,
       };
       setProfile(profileObj);
       localStorage.setItem('profile', JSON.stringify(profileObj));
@@ -70,8 +68,7 @@ function App() {
         const profileObj = {
           id: user.id,
           name: `${user.first_name || ''} ${user.last_name || ''}`.trim(),
-          username: user.username,
-          avatar: '',
+          username: user.username
         };
         setProfile(profileObj);
         localStorage.setItem('profile', JSON.stringify(profileObj));
@@ -210,30 +207,27 @@ function App() {
 
   // Render profile page after wizard complete
   if (step === 5) {
-    const hasUrlData = new URLSearchParams(window.location.search).get('user_id');
-    if (!hasUrlData) return null;
-    if (!profile) return null;
     const name = profile?.name || t.profile_name;
     const username = profile ? `@${profile.username}` : t.profile_username;
-    const photo = profile?.avatar || 'https://i.pravatar.cc/180?img=3';
     return (
       <div className="profile-page">
-        <div className="profile-header">
-          <div className="profile-avatar compact">
-            <img src={photo} alt="avatar" />
-          </div>
-          <div className="profile-info">
-            <h2 className="profile-name compact">{name}</h2>
-            <div className="profile-username compact">{username}</div>
-          </div>
+        <div className='title'>
+          <h1>Incognito</h1>
+          <img src={hat} />
         </div>
-        <div className="profile-username compact" onClick={() => { setStep(1) }}>📍 {selected.city?.name}, {selected.metro ? selected.metro : selected?.district?.name}</div>
-        <div className='grid'>
-          <div className="profile-pl compact" onClick={() => { setStep(1) }}>Баланс</div>
-          <div className="profile-pl compact" onClick={() => { setStep(1) }}>Рефералы</div>
+        {profile && (
+          <div className="profile-header">
+            <div className="profile-info">
+              <h2 className="profile-name compact">{name}</h2>
+              <div className="profile-username compact">{username}</div>
+            </div>
+          </div>
+        )}
+        <div className="profile-username compact" onClick={() => { setStep(1) }}>
+          📍 {selected.city?.name}, {selected.metro ? selected.metro : selected?.district?.name}
         </div>
         <div className="profile-actions">
-          {[t.btn1, t.btn2, t.btn3, t.btn4, t.btn5].map((label, i) => (
+          {[t.btn1, t.btn2].map((label, i) => (
             <button
               key={i}
               className="ios-btn"
@@ -242,7 +236,7 @@ function App() {
               {label}
             </button>
           ))}
-          <button className="ios-btn">{t.btn6}</button>
+          <p className='description tc'>Наш магазин постоянно расширяется. Ожидайте пополнение новых категорий и товаров в них.<br/><br/>Incognito.</p>
         </div>
       </div>
     );

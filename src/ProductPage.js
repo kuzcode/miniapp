@@ -1,5 +1,5 @@
 import React from 'react';
-import { useNavigate, useParams, useLocation } from 'react-router-dom';
+import { useNavigate, useParams, useLocation, redirect } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 
 function ProductPage() {
@@ -84,6 +84,7 @@ function ProductPage() {
         {product.name}
       </h2>
       <p className="description">{product.description}</p>
+      {product.category >= 0 && (<>
       <p>Клады в радиусе 1км от 📍 {selected?.metro || selected.district?.name || selected.city?.name || 'Вас'}:</p>
       <div className="grams">
         {weights.map((w) => (
@@ -93,6 +94,8 @@ function ProductPage() {
           </li>
         ))}
       </div>
+      </>
+      )}
 
       {shown && (
         <div className="selectgram">
@@ -122,24 +125,39 @@ function ProductPage() {
         </div>
       )}
 
-      <div className="center">
-        <button
-          className="buy-btn welcome-btn"
-          style={{ padding: '12px 24px' }}
-          onClick={() => {
-            if (weights.length > 1) {
-              setShown(true);
-            } else {
-              const w = weights[0];
-              navigate('/checkout', {
-                state: { product, variants: [{ weight: w, price: calculatePrice(w) }] },
-              });
-            }
-          }}
-        >
-          Купить
-        </button>
-      </div>
+      {product.category >= 0 ? (
+        <div className="center">
+          <button
+            className="buy-btn welcome-btn"
+            style={{ padding: '12px 24px' }}
+            onClick={() => {
+              if (weights.length > 1) {
+                setShown(true);
+              } else {
+                const w = weights[0];
+                navigate('/checkout', {
+                  state: { product, variants: [{ weight: w, price: calculatePrice(w) }] },
+                });
+              }
+            }}
+          >
+            Купить
+          </button>
+        </div>
+      ) : (
+        <div className="center">
+          <button
+            className="buy-btn welcome-btn"
+            style={{ padding: '12px 24px' }}
+            onClick={() => {
+              const url = 'https://t.me/incognito_market_support?text=Здравствуйте!+По+поводу+работы';
+              window.open(url, '_blank');
+            }}
+          >
+            Написать
+          </button>
+        </div>
+      )}
     </div>
   );
 }

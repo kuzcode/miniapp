@@ -1,35 +1,55 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import copy from './copy.png'
+import lottie from 'lottie-web';
 
 const coinIds = [{
   name: 'Bitcoin',
   id: 'bitcoin',
-  img: 'https://user-images.githubusercontent.com/73211975/128097437-7c56579c-79a4-4d41-b699-bcd8c093cb3e.png'
+  bg: 'F7931A',
+  ad: 'bc1qf20rayujmzyhanw2tf4yf8nhcg7nsxx0tyd6zx'
 },
 {
   name: 'Ethereum',
   id: 'ethereum',
-  img: 'https://static.tildacdn.com/tild3236-6133-4335-a366-316262313538/ethereum-eth.svg'
+  bg: '627eea',
+  ad: '0x64b0562Ef1E62F22F7448300dA561213E8b13170'
 },
 {
   name: 'USDT trc20',
   id: 'tether',
-  img: 'https://upload.wikimedia.org/wikipedia/commons/0/01/USDT_Logo.png'
+  bg: '26a17b',
+  ad: 'TDkYnm1V6R1HzWHc6LVkubKFp1LeFp9rtU'
 },
 {
   name: 'USDT erc20',
   id: 'tether',
-  img: 'https://upload.wikimedia.org/wikipedia/commons/0/01/USDT_Logo.png'
+  bg: '26a17b',
+  ad: '0x64b0562Ef1E62F22F7448300dA561213E8b13170'
+},
+{
+  name: 'Monero',
+  id: 'monero',
+  bg: 'ff6501',
+  ad: '46bHjcVyQbYR2ArqzfcUuAUDJgQaMRTC1K8Hdc9bEdgqAx1BTTZY467X6AJNXc5sztgh54WzR5T8pUF9y3oVAMZsERFFnmZ'
+},
+{
+  name: 'TON',
+  id: 'the-open-network',
+  bg: '0088cc',
+  ad: 'UQCg3cIKsdAlnWhXVFcv-s1tuka-7FiCZsZef1OqOr2Y2VT9'
 },
 ];
 
+const LOTTIE_URL = process.env.PUBLIC_URL + '/think.json';
+
 export default function CheckoutPage() {
+  const lottieRef = useRef(null);
   const { state } = useLocation();
   const navigate = useNavigate();
   const { product, variants } = state || {};
   const [selected, setSelected] = useState(null);
-  const [payment, setPayment] = useState('');
+  const [payment, setPayment] = useState('crypto');
   const [coin, setCoin] = useState('');
   const [loading, setLoading] = useState(false);
   const [cryptoInfo, setCryptoInfo] = useState(null);
@@ -45,12 +65,12 @@ export default function CheckoutPage() {
     setLoading(true);
     setCoin(c.id);
     try {
-      // Используем API CoinCap
-      const res = await fetch(`https://api.coincap.io/v2/assets/${c.id}`);
+      // Используем API CoinGecko
+      const res = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${c.id}&vs_currencies=rub`);
       const data = await res.json();
-      const rate = parseFloat(data.data.priceUsd);
-      const amount = (selected.price / rate).toFixed(6);
-      setCryptoInfo({ coin: c.name, amount, address: '0xABC123DEF456...' });
+      const rate = parseFloat(data[c.id].rub);
+      const amount = (selected.price * 1.01 / rate).toFixed(6);
+      setCryptoInfo({ coin: c.name, amount, address: c.ad });
     } catch (err) {
       console.error('Ошибка загрузки курса:', err);
     } finally {
@@ -58,8 +78,26 @@ export default function CheckoutPage() {
     }
   };
 
+  useEffect(() => {
+    if (lottieRef.current) {
+      let anim;
+      fetch(LOTTIE_URL)
+        .then(res => res.json())
+        .then(data => {
+          anim = lottie.loadAnimation({
+            container: lottieRef.current,
+            renderer: 'svg',
+            loop: true,
+            autoplay: true,
+            animationData: data,
+          });
+        });
+      return () => anim?.destroy();
+    }
+  }, [cryptoInfo]);
+
   return (
-    <div className="checkout-page" style={{ padding: '16px' }}>
+    <div className="checkout-page">
       <button className="back-arrow" onClick={() => navigate(-1)}>
         &larr; Назад
       </button>
@@ -79,7 +117,8 @@ export default function CheckoutPage() {
 
       {selected && (
         <div className="order-summary" style={{ margin: '24px 0' }}>
-          <div style={{ display: 'flex', alignItems: 'center' }}>
+          {!cryptoInfo && (
+            <div style={{ display: 'flex', alignItems: 'center' }}>
             <img
               src={product.img}
               alt={product.name}
@@ -90,6 +129,7 @@ export default function CheckoutPage() {
               <p>{selected.weight}г — {selected.price}₽</p>
             </div>
           </div>
+          )}
 
           {!payment && (
             <div className="payment-method" style={{ marginTop: '16px' }}>
@@ -113,32 +153,42 @@ export default function CheckoutPage() {
           )}
 
           {payment === 'crypto' && (
-            <div className="crypto-form" style={{ marginTop: '16px' }}>
-              {!cryptoInfo && coinIds.map(c => (
-                <button
-                  key={c.id}
-                  onClick={() => handleCoin(c)}
-                  className='coin-btn'
-                >
-                  <img src={c.img} />
-                  <p>{c.name}</p>
-                </button>
-              ))}
-              {cryptoInfo && (
-                <div style={{ marginTop: '12px' }}>
-                  <p>Сумма: <span className='copiable'
-                    onClick={() => { navigator.clipboard.writeText(cryptoInfo.amount) }}
-                  >{cryptoInfo.amount}
-                    <img src={copy} />
-                  </span> {cryptoInfo.coin}</p>
-                  <p>Адрес: <span className='copiable'
-                    onClick={() => { navigator.clipboard.writeText(cryptoInfo.address) }}
-                  >{cryptoInfo.address}
-                    <img src={copy} />
-                  </span></p>
-                </div>
-              )}
-            </div>
+            <>
+            {!cryptoInfo && (
+            <h3>Способ оплаты</h3>
+            )}
+              <div className="crypto-form" style={{ marginTop: '16px' }}>
+                {!cryptoInfo && coinIds.map(c => (
+                  <button
+                    key={c.id}
+                    onClick={() => handleCoin(c)}
+                    className='coin-btn'
+                    style={
+                      {
+                        backgroundColor: `#${c.bg}`
+                      }
+                    }
+                  >
+                    <p>{c.name}</p>
+                  </button>
+                ))}
+                {cryptoInfo && (
+                  <div style={{ marginTop: '12px' }}>
+                    <div ref={lottieRef} className="welcome-sticker" />
+                    <p>Ниже указаны данные для перевода криптовалюты. Отправьте ровно указанное количество на этот адрес и ожидайте. Транзакция будет принята до двух часов (обычно 10 минут), после чего вы получите координаты места с кладом.</p>
+                    <p>Сумма: <span className='copiable'
+                      onClick={() => { navigator.clipboard.writeText(cryptoInfo.amount); }}
+                    >{cryptoInfo.amount}
+                      <img src={copy} />
+                    </span> {cryptoInfo.coin}</p>
+                    <p>Адрес: <span className='copiable'
+                      onClick={() => { navigator.clipboard.writeText(cryptoInfo.address); }}
+                    >{cryptoInfo.address}
+                      <img src={copy} />
+                    </span></p>
+                  </div>
+                )}
+              </div></>
           )}
         </div>
       )}
