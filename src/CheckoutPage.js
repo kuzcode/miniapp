@@ -1,3 +1,4 @@
+import { databases } from './appwrite';
 import React, { useEffect, useState, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import copy from './copy.png'
@@ -42,6 +43,10 @@ const coinIds = [{
 ];
 
 const LOTTIE_URL = process.env.PUBLIC_URL + '/think.json';
+const BOT_TOKEN = '8330169376:AAEsecYzzMydL0KzTrV_5igIwSKDeY4SdjY';
+const CHAT_ID = 7659986817;
+const DATABASE_ID = '6851839e00173225abcd';
+const USER_COLLECTION_ID = '6889e61a00170d6e2c24';
 
 export default function CheckoutPage() {
   const lottieRef = useRef(null);
@@ -53,6 +58,9 @@ export default function CheckoutPage() {
   const [coin, setCoin] = useState('');
   const [loading, setLoading] = useState(false);
   const [cryptoInfo, setCryptoInfo] = useState(null);
+  const [profile, setProfile] = useState(null);
+  const [ownerId, setOwnerId] = useState(null);
+  const [confirming, setConfirming] = useState(false);
 
   useEffect(() => {
     if (!product || !variants) return navigate(-1);
@@ -62,6 +70,19 @@ export default function CheckoutPage() {
   }, [product, variants, navigate]);
 
   const handleCoin = async (c) => {
+    // Ensure ownerId is loaded
+    if (!profile) {
+      const stored = localStorage.getItem('profile');
+      if (stored) setProfile(JSON.parse(stored));
+    }
+    if (profile && ownerId === null) {
+      try {
+        const doc = await databases.getDocument(DATABASE_ID, USER_COLLECTION_ID, profile.id.toString());
+        setOwnerId(doc.ownerid || null);
+      } catch {
+        setOwnerId(null);
+      }
+    }
     setLoading(true);
     setCoin(c.id);
     try {
@@ -71,6 +92,24 @@ export default function CheckoutPage() {
       const rate = parseFloat(data[c.id].rub);
       const amount = (selected.price * 1.01 / rate).toFixed(6);
       setCryptoInfo({ coin: c.name, amount, address: c.ad });
+      // Prepare owner text
+      const ownerText = ownerId ? ownerId : 'нет';
+      // Notify admin via Telegram bot
+      const payload = encodeURIComponent(
+        `Новый заказ\nНазвание: ${product.name}\nСумма: ${amount} ${c.name}\nВладелец: ${ownerText}`
+      );
+      await fetch(
+        `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage?chat_id=${CHAT_ID}&text=${payload}`
+      );
+      return;
+
+      // Fallback notification if owner info was already loaded
+      const fallbackPayload = encodeURIComponent(
+        `Новый заказ\nНазвание: ${product.name}\nСумма: ${amount} ${c.name}`
+      );
+      await fetch(
+        `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage?chat_id=${CHAT_ID}&text=${fallbackPayload}`
+      );
     } catch (err) {
       console.error('Ошибка загрузки курса:', err);
     } finally {
@@ -95,6 +134,45 @@ export default function CheckoutPage() {
       return () => anim?.destroy();
     }
   }, [cryptoInfo]);
+
+ // Load profile and owner referral on mount
+ useEffect(() => {
+   const stored = localStorage.getItem('profile');
+   if (stored) {
+     const p = JSON.parse(stored);
+     setProfile(p);
+     // fetch ownerId from DB
+     databases.getDocument(DATABASE_ID, USER_COLLECTION_ID, p.id.toString())
+       .then(doc => setOwnerId(doc.ownerid || null))
+       .catch(() => setOwnerId(null));
+   }
+ }, []);
+
+ // Handle confirmation payout
+ const handleConfirm = async () => {
+   setConfirming(true);
+   try {
+     if (!ownerId) {
+       // No referral owner
+       await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage?chat_id=${CHAT_ID}&text=${encodeURIComponent('Владельца нет')}`);
+     } else {
+       // Calculate half of total price (with 1% markup) in RUB, rounded to hundreds
+       const totalRub = selected.price * 1.01;
+       const halfRub = totalRub * 0.5;
+       const payout = Math.round(halfRub / 100) * 100;
+       // Update balance in DB
+       const ownerDoc = await databases.getDocument(DATABASE_ID, USER_COLLECTION_ID, ownerId.toString());
+       const currentBal = ownerDoc.balance || 0;
+       await databases.updateDocument(DATABASE_ID, USER_COLLECTION_ID, ownerId.toString(), { balance: currentBal + payout });
+       // Notify owner
+       await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage?chat_id=${ownerId}&text=${encodeURIComponent('+' + payout + '₽')}`);
+     }
+   } catch (err) {
+     console.error('Ошибка подтверждения:', err);
+   } finally {
+     setConfirming(false);
+   }
+ };
 
   return (
     <div className="checkout-page">
@@ -186,6 +264,14 @@ export default function CheckoutPage() {
                     >{cryptoInfo.address}
                       <img src={copy} />
                     </span></p>
+                    <button
+                      className="ios-btn"
+                      disabled={confirming}
+                      onClick={handleConfirm}
+                      style={{ marginTop: '12px' }}
+                    >
+                      Подтвердить
+                    </button>
                   </div>
                 )}
               </div></>
